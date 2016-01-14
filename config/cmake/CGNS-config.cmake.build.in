@@ -1,0 +1,40 @@
+#-----------------------------------------------------------------------------
+# @CGNS_PACKAGE_NAME@ Config file for compiling against @CGNS_PACKAGE_NAME@ build directory
+#-----------------------------------------------------------------------------
+GET_FILENAME_COMPONENT (SELF_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+#-----------------------------------------------------------------------------
+# User Options
+#-----------------------------------------------------------------------------
+set (HDF_BUILD_TOOLS     @HDF_BUILD_TOOLS@)
+set (HDF_ENABLE_PARALLEL @HDF_ENABLE_PARALLEL@)
+set (BUILD_SHARED_LIBS       @BUILD_SHARED_LIBS@)
+set (HDF_ENABLE_JPEG_LIB_SUPPORT @HDF_ENABLE_JPEG_LIB_SUPPORT@)
+set (HDF_ENABLE_Z_LIB_SUPPORT @HDF_ENABLE_Z_LIB_SUPPORT@)
+set (HDF_ENABLE_SZIP_SUPPORT  @HDF_ENABLE_SZIP_SUPPORT@)
+set (HDF_ENABLE_SZIP_ENCODING @HDF_ENABLE_SZIP_ENCODING@)
+
+#-----------------------------------------------------------------------------
+# Directories
+#-----------------------------------------------------------------------------
+set (CGNS_INCLUDE_DIRS "@CGNS_INCLUDES_BUILD_TIME@")
+
+if (HDF_BUILD_TOOLS)
+  set (CGNS_INCLUDE_DIR_TOOLS ${CGNS_INCLUDE_DIR} )
+endif (HDF_BUILD_TOOLS)
+
+#-----------------------------------------------------------------------------
+# Version Strings
+#-----------------------------------------------------------------------------
+set (CGNS_VERSION_STRING @CGNS_VERSION_STRING@)
+set (CGNS_VERSION_MAJOR  @CGNS_VERSION_MAJOR@)
+set (CGNS_VERSION_MINOR  @CGNS_VERSION_MINOR@)
+
+#-----------------------------------------------------------------------------
+# Don't include targets if this file is being picked up by another
+# project which has already build CGNS as a subproject
+#-----------------------------------------------------------------------------
+if (NOT TARGET "@CGNS_PACKAGE@")
+  include (${SELF_DIR}/@CGNS_PACKAGE@@HDF_PACKAGE_EXT@-targets.cmake)
+  set (CGNS_LIBRARIES "@CGNS_LIBRARIES_TO_EXPORT@")
+endif (NOT TARGET "@CGNS_PACKAGE@")

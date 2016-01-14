@@ -1,0 +1,61 @@
+#-----------------------------------------------------------------------------
+# @CGNS_PACKAGE_NAME@ Config file for compiling against @CGNS_PACKAGE_NAME@ install directory
+#-----------------------------------------------------------------------------
+GET_FILENAME_COMPONENT (SELF_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+GET_FILENAME_COMPONENT(_IMPORT_PREFIX "${SELF_DIR}" PATH)
+GET_FILENAME_COMPONENT(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
+if (NOT WIN32)
+  GET_FILENAME_COMPONENT(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
+endif (NOT WIN32)
+
+#-----------------------------------------------------------------------------
+# User Options
+#-----------------------------------------------------------------------------
+set (HDF_ENABLE_PARALLEL @HDF_ENABLE_PARALLEL@)
+set (HDF_BUILD_TOOLS     @HDF_BUILD_TOOLS@)
+set (HDF_ENABLE_JPEG_LIB_SUPPORT @HDF_ENABLE_JPEG_LIB_SUPPORT@)
+set (HDF_ENABLE_Z_LIB_SUPPORT @HDF_ENABLE_Z_LIB_SUPPORT@)
+set (HDF_ENABLE_SZIP_SUPPORT  @HDF_ENABLE_SZIP_SUPPORT@)
+set (HDF_ENABLE_SZIP_ENCODING @HDF_ENABLE_SZIP_ENCODING@)
+set (BUILD_SHARED_LIBS    @BUILD_SHARED_LIBS@)
+set (HDF_PACKAGE_EXTLIBS @HDF_PACKAGE_EXTLIBS@)
+
+#-----------------------------------------------------------------------------
+# Version Strings
+#-----------------------------------------------------------------------------
+set (CGNS_VERSION_STRING @CGNS_VERSION_STRING@)
+set (CGNS_VERSION_MAJOR  @CGNS_VERSION_MAJOR@)
+set (CGNS_VERSION_MINOR  @CGNS_VERSION_MINOR@)
+
+#-----------------------------------------------------------------------------
+# Directories
+#-----------------------------------------------------------------------------
+set (CGNS_INCLUDE_DIRS "${_IMPORT_PREFIX}/include")
+
+if (HDF_BUILD_TOOLS)
+  set (CGNS_INCLUDE_DIR_TOOLS "${_IMPORT_PREFIX}/include")
+endif (HDF_BUILD_TOOLS)
+
+#-----------------------------------------------------------------------------
+# Don't include targets if this file is being picked up by another
+# project which has already build CGNS as a subproject
+#-----------------------------------------------------------------------------
+if (NOT TARGET "@CGNS_PACKAGE@")
+  if (HDF_ENABLE_JPEG_LIB_SUPPORT AND HDF_PACKAGE_EXTLIBS AND NOT TARGET "jpeg")
+    include (${SELF_DIR}/../JPEG/@JPEG_PACKAGE_NAME@@HDF_PACKAGE_EXT@-targets.cmake)
+  endif (HDF_ENABLE_JPEG_LIB_SUPPORT AND HDF_PACKAGE_EXTLIBS AND NOT TARGET "jpeg")
+  if (HDF_ENABLE_Z_LIB_SUPPORT AND HDF_PACKAGE_EXTLIBS AND NOT TARGET "zlib")
+    include (${SELF_DIR}/../ZLIB/@ZLIB_PACKAGE_NAME@@HDF_PACKAGE_EXT@-targets.cmake)
+  endif (HDF_ENABLE_Z_LIB_SUPPORT AND HDF_PACKAGE_EXTLIBS AND NOT TARGET "zlib")
+  if (HDF_ENABLE_SZIP_SUPPORT AND HDF_PACKAGE_EXTLIBS AND NOT TARGET "szip")
+    include (${SELF_DIR}/../SZIP/@SZIP_PACKAGE_NAME@@HDF_PACKAGE_EXT@-targets.cmake)
+  endif (HDF_ENABLE_SZIP_SUPPORT AND HDF_PACKAGE_EXTLIBS AND NOT TARGET "szip")
+  if (HDF_PACKAGE_EXTLIBS AND NOT TARGET "hdf")
+    include (${SELF_DIR}/../hdf4/@HDF4_PACKAGE_NAME@@HDF_PACKAGE_EXT@-targets.cmake)
+  endif (HDF_PACKAGE_EXTLIBS AND NOT TARGET "hdf")
+  if (HDF_PACKAGE_EXTLIBS AND NOT TARGET "hdf5")
+    include (${SELF_DIR}/../hdf5/@HDF5_PACKAGE_NAME@@HDF_PACKAGE_EXT@-targets.cmake)
+  endif (HDF_PACKAGE_EXTLIBS AND NOT TARGET "hdf5")
+  include (${SELF_DIR}/@CGNS_PACKAGE@@HDF_PACKAGE_EXT@-targets.cmake)
+  set (CGNS_LIBRARIES "@CGNS_LIBRARIES_TO_EXPORT@")
+endif (NOT TARGET "@CGNS_PACKAGE@")

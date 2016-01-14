@@ -6,13 +6,93 @@ if(COMMAND cmake_policy)
   endif (${CMAKE_MAJOR_VERSION} GREATER 2 OR ${CMAKE_MINOR_VERSION} GREATER 7)
 endif(COMMAND cmake_policy)
 
+project("cgns" C)
+
+#-----------------------------------------------------------------------------
+# Instructions for use : Normal Build
+#
+# For standard build of CGNS.
+#-----------------------------------------------------------------------------
+
+if ("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
+    MESSAGE(FATAL_ERROR "\nERROR! ${PROJECT_NAME} DOES NOT SUPPORT IN SOURCE BUILDS!\n"
+      "CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}"
+      " == CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}\n"
+      "NEXT STEPS:\n"
+      "(1) Delete the CMakeCache.txt file and the CMakeFiles/ directory\n"
+      "     under the source directory for ${PROJECT_NAME}, otherwise you\n"
+      "     will not be able to configure ${PROJECT_NAME} correctly!\n"
+      "      * For example, on linux machines do:\n"
+      "        $ rm -r CMakeCache.txt CMakeFiles/\n"
+      "(2) Create a different directory and configure ${PROJECT_NAME} in that directory.\n"
+      "      * For example, on linux machines do:\n"
+      "        $ mkdir MY_BUILD\n"
+      "        $ cd MY_BUILD\n"
+      "        $ cmake [OPTIONS] ..\n"
+      )
+endif ()
+
+#-----------------------------------------------------------------------------
+# Allow Visual Studio solution directories
+#-----------------------------------------------------------------------------
+# Provide a way for Visual Studio Express users to turn OFF the new FOLDER
+# organization feature. Default to ON for non-Express users. Express users must
+# explicitly turn off this option to build HDF5 in the Express IDE...
+#
+option (HDF5_USE_FOLDERS "Enable folder grouping of projects in IDEs." ON)
+mark_as_advanced (HDF5_USE_FOLDERS)
+if (HDF5_USE_FOLDERS)
+  set_property (GLOBAL PROPERTY USE_FOLDERS ON)
+endif (HDF5_USE_FOLDERS)
+
+# Don't set the hdf5 library files as being imported from system. Fixes issues
+# when compiling the CGNS fortran library with cmake >3.0 and not being able
+# to find the hdf5 module files. This is because -isystem is used instead of -I
+# when specifying the directory containing the hdf5 modules.
+#
+set ( CMAKE_NO_SYSTEM_FROM_IMPORTED true)
+
+#-----------------------------------------------------------------------------
+# Set the core names of all the libraries
+#-----------------------------------------------------------------------------
+set (CGNS_C_LIB_CORENAME       "cgns")
+set (CGNS_Fortran_C_LIB_CORENAME "cgns_fcstub")
+set (CGNS_Fortran_LIB_CORENAME "cgns_fortran")
+
+#-----------------------------------------------------------------------------
+# Set the true names of all the libraries if customized by external project
+#-----------------------------------------------------------------------------
+set (CGNS_C_LIB_NAME           "${CGNS_C_LIB_CORENAME}")
+set (CGNS_Fortran_C_LIB_NAME     "${CGNS_Fortran_C_LIB_CORENAME}")
+set (CGNS_Fortran_LIB_NAME     "${CGNS_Fortran_LIB_CORENAME}")
+
+#-----------------------------------------------------------------------------
+# Set the target names of all the libraries
+#-----------------------------------------------------------------------------
+set (CGNS_C_LIB_TARGET          ${CGNS_C_LIB_CORENAME})
+set (CGNS_Fortran_C_LIB_TARGET    ${CGNS_Fortran_C_LIB_CORENAME})
+set (CGNS_Fortran_LIB_TARGET    ${CGNS_Fortran_LIB_CORENAME})
+
+#-----------------------------------------------------------------------------
+# Define some CMake variables for use later in the project
+#-----------------------------------------------------------------------------
+set (CGNS_RESOURCES_DIR          ${PROJECT_SOURCE_DIR}/config/cmake)
+set (HDF_RESOURCES_DIR           ${PROJECT_SOURCE_DIR}/config/cmake)
+set (HDF_RESOURCES_EXT_DIR       ${PROJECT_SOURCE_DIR}/config/cmake_ext_mod)
+set (CGNS_SRC_DIR          	 ${PROJECT_SOURCE_DIR}/src)
+set (CGNS_Fortran_SRC_DIR    	 ${PROJECT_SOURCE_DIR}/src)
+set (CGNS_TEST_DIR          	 ${PROJECT_SOURCE_DIR}/src/tests)
+set (CGNS_Fortran_TEST_DIR   	 ${PROJECT_SOURCE_DIR}/src/tests)
+set (CGNS_EXAMPLES_DIR       	 ${PROJECT_SOURCE_DIR}/src/examples)
+set (CGNS_Fortran_EXAMPLES_DIR   ${PROJECT_SOURCE_DIR}/src/examples)
+
+
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING
   "one of: Release, Debug, RelWithDebInfo or MinSizeRel")
 if (${CMAKE_MAJOR_VERSION} GREATER 2 OR ${CMAKE_MINOR_VERSION} GREATER 7)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release;Debug;RelWithDebInfo;MinSizeRel")
 endif (${CMAKE_MAJOR_VERSION} GREATER 2 OR ${CMAKE_MINOR_VERSION} GREATER 7)
 
-project("cgns" C)
 set(CGNS_VERSION "3.3")
 
 # Allow for building a package

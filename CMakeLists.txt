@@ -32,61 +32,6 @@ if ("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
       )
 endif ()
 
-#-----------------------------------------------------------------------------
-# Allow Visual Studio solution directories
-#-----------------------------------------------------------------------------
-# Provide a way for Visual Studio Express users to turn OFF the new FOLDER
-# organization feature. Default to ON for non-Express users. Express users must
-# explicitly turn off this option to build HDF5 in the Express IDE...
-#
-option (HDF5_USE_FOLDERS "Enable folder grouping of projects in IDEs." ON)
-mark_as_advanced (HDF5_USE_FOLDERS)
-if (HDF5_USE_FOLDERS)
-  set_property (GLOBAL PROPERTY USE_FOLDERS ON)
-endif (HDF5_USE_FOLDERS)
-
-# Don't set the hdf5 library files as being imported from system. Fixes issues
-# when compiling the CGNS fortran library with cmake >3.0 and not being able
-# to find the hdf5 module files. This is because -isystem is used instead of -I
-# when specifying the directory containing the hdf5 modules.
-#
-set ( CMAKE_NO_SYSTEM_FROM_IMPORTED true)
-
-#-----------------------------------------------------------------------------
-# Set the core names of all the libraries
-#-----------------------------------------------------------------------------
-set (CGNS_C_LIB_CORENAME       "cgns")
-set (CGNS_Fortran_C_LIB_CORENAME "cgns_fcstub")
-set (CGNS_Fortran_LIB_CORENAME "cgns_fortran")
-
-#-----------------------------------------------------------------------------
-# Set the true names of all the libraries if customized by external project
-#-----------------------------------------------------------------------------
-set (CGNS_C_LIB_NAME           "${CGNS_C_LIB_CORENAME}")
-set (CGNS_Fortran_C_LIB_NAME     "${CGNS_Fortran_C_LIB_CORENAME}")
-set (CGNS_Fortran_LIB_NAME     "${CGNS_Fortran_LIB_CORENAME}")
-
-#-----------------------------------------------------------------------------
-# Set the target names of all the libraries
-#-----------------------------------------------------------------------------
-set (CGNS_C_LIB_TARGET          ${CGNS_C_LIB_CORENAME})
-set (CGNS_Fortran_C_LIB_TARGET    ${CGNS_Fortran_C_LIB_CORENAME})
-set (CGNS_Fortran_LIB_TARGET    ${CGNS_Fortran_LIB_CORENAME})
-
-#-----------------------------------------------------------------------------
-# Define some CMake variables for use later in the project
-#-----------------------------------------------------------------------------
-set (CGNS_RESOURCES_DIR          ${PROJECT_SOURCE_DIR}/config/cmake)
-set (HDF_RESOURCES_DIR           ${PROJECT_SOURCE_DIR}/config/cmake)
-set (HDF_RESOURCES_EXT_DIR       ${PROJECT_SOURCE_DIR}/config/cmake_ext_mod)
-set (CGNS_SRC_DIR          	 ${PROJECT_SOURCE_DIR}/src)
-set (CGNS_Fortran_SRC_DIR    	 ${PROJECT_SOURCE_DIR}/src)
-set (CGNS_TEST_DIR          	 ${PROJECT_SOURCE_DIR}/src/tests)
-set (CGNS_Fortran_TEST_DIR   	 ${PROJECT_SOURCE_DIR}/src/tests)
-set (CGNS_EXAMPLES_DIR       	 ${PROJECT_SOURCE_DIR}/src/examples)
-set (CGNS_Fortran_EXAMPLES_DIR   ${PROJECT_SOURCE_DIR}/src/examples)
-
-
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING
   "one of: Release, Debug, RelWithDebInfo or MinSizeRel")
 if (${CMAKE_MAJOR_VERSION} GREATER 2 OR ${CMAKE_MINOR_VERSION} GREATER 7)
@@ -97,7 +42,9 @@ set(CGNS_VERSION "3.3")
 
 # Allow for building a package
 set(CPACK_PACKAGE_VERSION "${CGNS_VERSION}-develop")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "cgns-${CGNS_VERSION}")
+set (CPACK_PACKAGE_INSTALL_DIRECTORY "cgns-${CGNS_VERSION}")
+set (CGNS_PACKAGE_URL "http://www.cgns.org")
+set (CGNS_PACKAGE_BUGREPORT "https://cgnsorg.atlassian.net")
 set(CPACK_GENERATOR "STGZ;TGZ;ZIP")
 set(CPACK_SOURCE_GENERATOR "STGZ;TGZ;ZIP")
 include(CPack)
@@ -281,7 +228,7 @@ if (CGNS_ENABLE_HDF5)
   #set (SEARCH_PACKAGE_NAME ${HDF5_PACKAGE_NAME})
   set (SEARCH_PACKAGE_NAME "hdf5")
 
-  find_package (HDF5 NAMES ${SEARCH_PACKAGE_NAME} COMPONENTS ${FIND_HDF_COMPONENTS})
+  find_package (HDF5 QUIET NAMES ${SEARCH_PACKAGE_NAME} COMPONENTS ${FIND_HDF_COMPONENTS})
   message (STATUS "HDF5 C libs:${HDF5_FOUND} static:${HDF5_static_C_FOUND} and shared:${HDF5_shared_C_FOUND}")
   if (HDF5_FOUND)
     add_executable (h5dump IMPORTED)
@@ -433,6 +380,33 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 # add the automatically determined parts of the RPATH
 # which point to directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+#-----------------------------------------------------------------------------
+# This is in here to help some of the GCC based IDES like Eclipse
+# and code blocks parse the compiler errors and warnings better.
+#-----------------------------------------------------------------------------
+if (CMAKE_COMPILER_IS_GNUCC)
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fmessage-length=0")
+endif (CMAKE_COMPILER_IS_GNUCC)
+if (CMAKE_COMPILER_IS_GNUCXX)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmessage-length=0")
+endif (CMAKE_COMPILER_IS_GNUCXX)
+
+#-----------------------------------------------------------------------------
+# Dashboard and Testing Settings
+#-----------------------------------------------------------------------------
+option (CGNS_BUILD_TESTING "Build CGNS Testing" OFF)
+if (CGNS_BUILD_TESTING)
+  set (DART_TESTING_TIMEOUT 1200
+      CACHE INTEGER
+      "Timeout in seconds for each test (default 1200=20minutes)"
+  )
+  enable_testing ()
+  include (CTest)
+  include (${PROJECT_SOURCE_DIR}/CTestConfig.cmake)
+  configure_file (${HDF_RESOURCES_EXT_DIR}/CTestCustom.cmake ${PROJECT_BINARY_DIR}/CTestCustom.ctest @ONLY)
+endif (CGNS_BUILD_TESTING)
+
 
 ########
 # CGNS #

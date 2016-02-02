@@ -1,8 +1,14 @@
-# CGNS [![Build Status](https://travis-ci.org/CGNS/CGNS.svg?branch=develop)](https://travis-ci.org/CGNS/CGNS)
+# CGNS 
+[![Build Status](https://travis-ci.org/CGNS/CGNS.svg?branch=develop)](https://travis-ci.org/CGNS/CGNS) 
+[![Build Status: Windows](https://ci.appveyor.com/api/projects/status/jux83kxj0r234oy6?svg=true)](https://ci.appveyor.com/project/brtnfld/cgns)
 
 ## About
 
 The CFD General Notation System (CGNS) provides a standard for recording and recovering computer data associated with the numerical solution of fluid dynamics equations.
+
+## Bugs/Feature and issue tracking
+
+https://cgnsorg.atlassian.net
 
 ## Installation
 
@@ -27,11 +33,12 @@ The CFD General Notation System (CGNS) provides a standard for recording and rec
 
    user@hostname:build_path$ ccmake .
    
-   (a)The paths to the HDF5 libraries and header files must be set in 'HDF5_LIBRARY_DIR' and 'HDF5_INCLUDE_DIR' respectively.
+   (a)The path to the HDF5 library should be specified with CMAKE_PREFIX_PATH=$HDF_DIR for linking with a
+      specific HDF5 version.
          
      - If HDF5 is built with parallel-IO support via MPI, the 'HDF5_NEEDS_MPI' flag must be set to true.
 
-     -    If HDF5 is built with zlib and szip support, these need to be flagged with 'HDF5_NEEDS_ZLIB' and 'HDF5_NEEDS_SZIP' as well as the paths for those libraries.
+     - If HDF5 is built with zlib and szip support, these need to be flagged with 'HDF5_NEEDS_ZLIB' and 'HDF5_NEEDS_SZIP' as well as the paths for those libraries.
 
    (b)Fortran can be enabled by toggling the 'CGNS_ENABLE_FORTRAN' variable.
 

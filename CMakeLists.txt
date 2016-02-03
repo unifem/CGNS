@@ -32,21 +32,257 @@ if ("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
       )
 endif ()
 
+#-----------------------------------------------------------------------------
+# Allow Visual Studio solution directories
+#-----------------------------------------------------------------------------
+# Provide a way for Visual Studio Express users to turn OFF the new FOLDER
+# organization feature. Default to ON for non-Express users. Express users must
+# explicitly turn off this option to build HDF5 in the Express IDE...
+#
+option (HDF5_USE_FOLDERS "Enable folder grouping of projects in IDEs." ON)
+mark_as_advanced (HDF5_USE_FOLDERS)
+if (HDF5_USE_FOLDERS)
+  set_property (GLOBAL PROPERTY USE_FOLDERS ON)
+endif (HDF5_USE_FOLDERS)
+
+# Don't set the hdf5 library files as being imported from system. Fixes issues
+# when compiling the CGNS fortran library with cmake >3.0 and not being able
+# to find the hdf5 module files. This is because -isystem is used instead of -I
+# when specifying the directory containing the hdf5 modules.
+#
+set ( CMAKE_NO_SYSTEM_FROM_IMPORTED true)
+
+#-----------------------------------------------------------------------------
+# Set the core names of all the libraries
+#-----------------------------------------------------------------------------
+set (CGNS_C_LIB_CORENAME       "cgns")
+set (CGNS_Fortran_C_LIB_CORENAME "cgns_fcstub")
+set (CGNS_Fortran_LIB_CORENAME "cgns_fortran")
+
+#-----------------------------------------------------------------------------
+# Set the true names of all the libraries if customized by external project
+#-----------------------------------------------------------------------------
+set (CGNS_C_LIB_NAME           "${CGNS_C_LIB_CORENAME}")
+set (CGNS_Fortran_C_LIB_NAME     "${CGNS_Fortran_C_LIB_CORENAME}")
+set (CGNS_Fortran_LIB_NAME     "${CGNS_Fortran_LIB_CORENAME}")
+
+#-----------------------------------------------------------------------------
+# Set the target names of all the libraries
+#-----------------------------------------------------------------------------
+set (CGNS_C_LIB_TARGET          ${CGNS_C_LIB_CORENAME})
+set (CGNS_Fortran_C_LIB_TARGET    ${CGNS_Fortran_C_LIB_CORENAME})
+set (CGNS_Fortran_LIB_TARGET    ${CGNS_Fortran_LIB_CORENAME})
+
+#-----------------------------------------------------------------------------
+# Define some CMake variables for use later in the project
+#-----------------------------------------------------------------------------
+set (CGNS_RESOURCES_DIR          ${PROJECT_SOURCE_DIR}/config/cmake)
+set (HDF_RESOURCES_DIR           ${PROJECT_SOURCE_DIR}/config/cmake)
+set (HDF_RESOURCES_EXT_DIR       ${PROJECT_SOURCE_DIR}/config/cmake_ext_mod)
+set (CGNS_SRC_DIR          	 ${PROJECT_SOURCE_DIR}/src)
+set (CGNS_Fortran_SRC_DIR    	 ${PROJECT_SOURCE_DIR}/src)
+set (CGNS_TEST_DIR          	 ${PROJECT_SOURCE_DIR}/src/tests)
+set (CGNS_Fortran_TEST_DIR   	 ${PROJECT_SOURCE_DIR}/src/tests)
+set (CGNS_EXAMPLES_DIR       	 ${PROJECT_SOURCE_DIR}/src/examples)
+set (CGNS_Fortran_EXAMPLES_DIR   ${PROJECT_SOURCE_DIR}/src/examples)
+
+if (NOT CGNS_INSTALL_BIN_DIR)
+  set (CGNS_INSTALL_BIN_DIR bin)
+endif (NOT CGNS_INSTALL_BIN_DIR)
+if (NOT CGNS_INSTALL_LIB_DIR)
+  set (CGNS_INSTALL_LIB_DIR lib)
+endif (NOT CGNS_INSTALL_LIB_DIR)
+if (NOT CGNS_INSTALL_INCLUDE_DIR)
+  set (CGNS_INSTALL_INCLUDE_DIR include)
+endif (NOT CGNS_INSTALL_INCLUDE_DIR)
+if (NOT CGNS_INSTALL_DATA_DIR)
+  if (NOT WIN32)
+    set (CGNS_INSTALL_DATA_DIR share)
+    set (CGNS_INSTALL_CMAKE_DIR share/cmake)
+  else (NOT WIN32)
+    set (CGNS_INSTALL_DATA_DIR ".")
+    set (CGNS_INSTALL_CMAKE_DIR cmake)
+  endif (NOT WIN32)
+endif (NOT CGNS_INSTALL_DATA_DIR)
+
+#-----------------------------------------------------------------------------
+# parse the full version number from H5public.h and include in H5_VERS_INFO
+#-----------------------------------------------------------------------------
+file (READ ${CMAKE_CURRENT_SOURCE_DIR}/VERSION _version_contents)
+string (REGEX REPLACE ".*#define[ \t]+CGNS_VERS_MAJOR[ \t]+([0-9]*).*$"
+    "\\1" CGNS_VERS_MAJOR ${_version_contents})
+string (REGEX REPLACE ".*#define[ \t]+CGNS_VERS_MINOR[ \t]+([0-9]*).*$"
+    "\\1" CGNS_VERS_MINOR ${_version_contents})
+string (REGEX REPLACE ".*#define[ \t]+CGNS_VERS_RELEASE[ \t]+([0-9]*).*$"
+    "\\1" CGNS_VERS_RELEASE ${_version_contents})
+string (REGEX REPLACE ".*#define[ \t]+CGNS_VERS_SUBRELEASE[ \t]+\"([0-9A-Za-z._]*)\".*$"
+    "\\1" CGNS_VERS_SUBRELEASE ${_version_contents})
+#message (STATUS "VERSION: ${CGNS_VERS_MAJOR}.${CGNS_VERS_MINOR}.${CGNS_VERS_RELEASE}-${CGNS_VERS_SUBRELEASE}")
+
+#-----------------------------------------------------------------------------
+# parse the full soversion number from config/lt_vers.am and include in H5_SOVERS_INFO
+#-----------------------------------------------------------------------------
+set (CGNS_SOVERS_INTERFACE "1")
+set (CGNS_SOVERS_MINOR "0")
+set (CGNS_SOVERS_RELEASE "0")
+#file (READ ${CGNS_PROJECT_DIR}/config/lt_vers.am _lt_vers_am_contents)
+#string (REGEX REPLACE ".*LT_VERS_INTERFACE[ \t]+=[ \t]+([0-9]*).*$"
+#    "\\1" CGNS_SOVERS_INTERFACE ${_lt_vers_am_contents})
+#string (REGEX REPLACE ".*LT_VERS_REVISION[ \t]+=[ \t]+([0-9]*).*$"
+#    "\\1" CGNS_SOVERS_MINOR ${_lt_vers_am_contents})
+#string (REGEX REPLACE ".*LT_VERS_AGE[ \t]+=[ \t]+([0-9]*).*$"
+#    "\\1" CGNS_SOVERS_RELEASE ${_lt_vers_am_contents})
+MATH (EXPR CGNS_SOVERS_MAJOR ${CGNS_SOVERS_INTERFACE}-${CGNS_SOVERS_RELEASE})
+message (STATUS "SOVERSION: ${CGNS_SOVERS_MAJOR}.${CGNS_SOVERS_RELEASE}.${CGNS_SOVERS_MINOR}")
+
+
+#-----------------------------------------------------------------------------
+# Basic CGNS stuff here
+#-----------------------------------------------------------------------------
+set (CGNS_PACKAGE "cgns")
+set (HLJPSS_PACKAGE_NAME "CGNS")
+set (CGNS_PACKAGE_VERSION "${CGNS_VERS_MAJOR}.${CGNS_VERS_MINOR}.${CGNS_VERS_RELEASE}")
+set (CGNS_PACKAGE_VERSION_MAJOR "${CGNS_VERS_MAJOR}.${CGNS_VERS_MINOR}")
+set (CGNS_PACKAGE_VERSION_MINOR "${CGNS_VERS_RELEASE}")
+if (NOT "${CGNS_VERS_SUBRELEASE}" STREQUAL "")
+  set (CGNS_PACKAGE_VERSION_STRING "${CGNS_PACKAGE_VERSION}-${CGNS_VERS_SUBRELEASE}")
+else (NOT "${CGNS_VERS_SUBRELEASE}" STREQUAL "")
+  set (CGNS_PACKAGE_VERSION_STRING "${CGNS_PACKAGE_VERSION}")
+endif (NOT "${CGNS_VERS_SUBRELEASE}" STREQUAL "")
+set (CGNS_PACKAGE_STRING "${CGNS_PACKAGE_NAME} ${CGNS_PACKAGE_VERSION_STRING}")
+set (CGNS_PACKAGE_TARNAME "${CGNS_PACKAGE}${CGNS_PACKAGE_EXT}")
+set (CGNS_PACKAGE_URL "http://www.cgns.org")
+set (CGNS_PACKAGE_BUGREPORT "https://cgnsorg.atlassian.net")
+
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING
   "one of: Release, Debug, RelWithDebInfo or MinSizeRel")
 if (${CMAKE_MAJOR_VERSION} GREATER 2 OR ${CMAKE_MINOR_VERSION} GREATER 7)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release;Debug;RelWithDebInfo;MinSizeRel")
 endif (${CMAKE_MAJOR_VERSION} GREATER 2 OR ${CMAKE_MINOR_VERSION} GREATER 7)
 
-set(CGNS_VERSION "3.3")
+#-----------------------------------------------------------------------------
+# Include some macros for reusable code
+#-----------------------------------------------------------------------------
+include (${HDF_RESOURCES_EXT_DIR}/HDFMacros.cmake)
+
+#-----------------------------------------------------------------------------
+# Setup output Directories
+#-----------------------------------------------------------------------------
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY
+    ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Executables."
+)
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY
+    ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all Libraries"
+)
+set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY
+    ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all static libraries."
+)
+set (CMAKE_Fortran_MODULE_DIRECTORY
+    ${PROJECT_BINARY_DIR}/bin CACHE PATH "Single Directory for all fortran modules."
+)
+
+#-----------------------------------------------------------------------------
+# Targets built within this project are exported at Install time for use
+# by other projects using FindHLJPSS.
+#-----------------------------------------------------------------------------
+if (NOT CGNS_EXPORTED_TARGETS)
+  set (CGNS_EXPORTED_TARGETS "cgns-targets")
+endif (NOT CGNS_EXPORTED_TARGETS)
+
+#-----------------------------------------------------------------------------
+# To include a library in the list exported by the project AT BUILD TIME,
+# add it to this variable. This is NOT used by Make Install, but for projects
+# which include HLJPSS as a sub-project within their build tree
+#-----------------------------------------------------------------------------
+set_global_variable (CGNS_LIBRARIES_TO_EXPORT "")
+set_global_variable (CGNS_APPS_TO_EXPORT "")
+set (EXTERNAL_HEADER_LIST "")
+set (EXTERNAL_LIBRARY_LIST "")
+set (EXTERNAL_LIBRARYDLL_LIST "")
+
+#-----------------------------------------------------------------------------
+# Run all the CMake configuration tests for our build environment
+#-----------------------------------------------------------------------------
+include (${CGNS_RESOURCES_DIR}/ConfigureChecks.cmake)
+
+set (CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE ON)
+
+#-----------------------------------------------------------------------------
+# Option to build Shared/Static libs, default is static
+#-----------------------------------------------------------------------------
+option (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
+set (LIB_TYPE STATIC)
+if (BUILD_SHARED_LIBS)
+  set (LIB_TYPE SHARED)
+  add_definitions (-DH5HLR_DYNAMIC)
+endif (BUILD_SHARED_LIBS)
+set (CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+add_definitions (-DBIG_LONGS -DSWAP)
+
+#-----------------------------------------------------------------------------
+# Option to Build Static executables
+#-----------------------------------------------------------------------------
+option (BUILD_STATIC_EXECS "Build Static Executables" OFF)
+if (BUILD_STATIC_EXECS)
+  if (NOT WIN32)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static")
+  endif (NOT WIN32)
+endif (BUILD_STATIC_EXECS)
+
+#-----------------------------------------------------------------------------
+# Include the main src and config directories
+#-----------------------------------------------------------------------------
+set (CGNS_INCLUDE_DIRECTORIES
+    ${CGNS_SRC_DIR}
+    ${CGNS_BINARY_DIR}
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+)
+INCLUDE_DIRECTORIES (${CGNS_INCLUDE_DIRECTORIES})
+
+#-----------------------------------------------------------------------------
+# When building utility executables that generate other (source) files :
+# we make use of the following variables defined in the root CMakeLists.
+# Certain systems may add /Debug or /Release to output paths
+# and we need to call the executable from inside the CMake configuration
+#-----------------------------------------------------------------------------
+set (EXE_EXT "")
+if (WIN32)
+  set (EXE_EXT ".exe")
+  add_definitions (-D_BIND_TO_CURRENT_VCLIBS_VERSION=1)
+  add_definitions (-D_CRT_SECURE_NO_WARNINGS)
+  add_definitions (-D_CONSOLE)
+endif (WIN32)
+
+if (MSVC)
+  set (CMAKE_MFC_FLAG 0)
+endif (MSVC)
+
+set (MAKE_SYSTEM)
+if (CMAKE_BUILD_TOOL MATCHES "make")
+  set (MAKE_SYSTEM 1)
+endif (CMAKE_BUILD_TOOL MATCHES "make")
+
+set (CFG_INIT "/${CMAKE_CFG_INTDIR}")
+if (MAKE_SYSTEM)
+  set (CFG_INIT "")
+endif (MAKE_SYSTEM)
+
+
+#-----------------------------------------------------------------------------
+# Compiler specific flags : Shouldn't there be compiler tests for these
+#-----------------------------------------------------------------------------
+if (CMAKE_COMPILER_IS_GNUCC)
+  set (CMAKE_C_FLAGS "${CMAKE_ANSI_CFLAGS} ${CMAKE_C_FLAGS} -std=c99 -fomit-frame-pointer -finline-functions -fno-common")
+endif (CMAKE_COMPILER_IS_GNUCC)
+
+##set(CGNS_VERSION "3.3")
 
 # Allow for building a package
-set(CPACK_PACKAGE_VERSION "${CGNS_VERSION}-develop")
-set (CPACK_PACKAGE_INSTALL_DIRECTORY "cgns-${CGNS_VERSION}")
-set (CGNS_PACKAGE_URL "http://www.cgns.org")
-set (CGNS_PACKAGE_BUGREPORT "https://cgnsorg.atlassian.net")
-set(CPACK_GENERATOR "STGZ;TGZ;ZIP")
-set(CPACK_SOURCE_GENERATOR "STGZ;TGZ;ZIP")
+##set(CPACK_PACKAGE_VERSION "${CGNS_VERSION}-develop")
+##set (CPACK_PACKAGE_INSTALL_DIRECTORY "cgns-${CGNS_VERSION}")
+##set(CPACK_GENERATOR "STGZ;TGZ;ZIP")
+##set(CPACK_SOURCE_GENERATOR "STGZ;TGZ;ZIP")
 include(CPack)
 
 CONFIGURE_FILE(
@@ -211,9 +447,9 @@ if (CGNS_ENABLE_FORTRAN AND HAS_FORTRAN)
   enable_language("Fortran")
 endif (CGNS_ENABLE_FORTRAN AND HAS_FORTRAN)
 
-########
-# HDF5 #
-########
+################
+# HDF5  support#
+################
 
 option(CGNS_ENABLE_HDF5 "Enable or disable HDF5 interface" "OFF")
 if (CGNS_ENABLE_HDF5)

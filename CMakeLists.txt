@@ -183,7 +183,7 @@ set (CMAKE_Fortran_MODULE_DIRECTORY
 
 #-----------------------------------------------------------------------------
 # Targets built within this project are exported at Install time for use
-# by other projects using FindHLJPSS.
+# by other projects using FindCGNS.
 #-----------------------------------------------------------------------------
 if (NOT CGNS_EXPORTED_TARGETS)
   set (CGNS_EXPORTED_TARGETS "cgns-targets")
@@ -192,7 +192,7 @@ endif (NOT CGNS_EXPORTED_TARGETS)
 #-----------------------------------------------------------------------------
 # To include a library in the list exported by the project AT BUILD TIME,
 # add it to this variable. This is NOT used by Make Install, but for projects
-# which include HLJPSS as a sub-project within their build tree
+# which include CGNS as a sub-project within their build tree
 #-----------------------------------------------------------------------------
 set_global_variable (CGNS_LIBRARIES_TO_EXPORT "")
 set_global_variable (CGNS_APPS_TO_EXPORT "")
@@ -211,6 +211,7 @@ set (CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE ON)
 # Option to build Shared/Static libs, default is static
 #-----------------------------------------------------------------------------
 option (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
+#MSB
 set (LIB_TYPE STATIC)
 if (BUILD_SHARED_LIBS)
   set (LIB_TYPE SHARED)

@@ -60,15 +60,6 @@ freely, subject to the following restrictions:
 #define __CGNS_ENUMS__
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *\
- *      VERSION NUMBER                                                   *
-\* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-#define CGNS_VERSION 3130
-#define CGNS_DOTVERS 3.13
-#define CGNS_COMPATVERSION 2540
-#define CGNS_COMPATDOTVERS 2.54
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *\
  *      modes for cgns file                                              *
 \* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 

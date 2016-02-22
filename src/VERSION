@@ -1,0 +1,10 @@
+/* Version numbers */
+#define CGNS_VERS_MAJOR	3	/* For major interface/format changes  	  */
+#define CGNS_VERS_MINOR   3       /* For minor interface/format changes  	  */
+#define CGNS_VERS_RELEASE	1	/* For tweaks, bug-fixes, or development  */
+#define CGNS_VERS_SUBRELEASE ""	/* For pre-releases like snap0            */
+				/* Empty string for real releases.        */
+#define CGNS_DOTVERS 3.31
+#define CGNS_VERSION 3310
+#define CGNS_VERS_INFO    "CGNS library version: 3.3.1"      /* Full version string */
+

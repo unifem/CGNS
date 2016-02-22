@@ -108,7 +108,7 @@ endif (NOT CGNS_INSTALL_DATA_DIR)
 #-----------------------------------------------------------------------------
 # parse the full version number from H5public.h and include in H5_VERS_INFO
 #-----------------------------------------------------------------------------
-file (READ ${CMAKE_CURRENT_SOURCE_DIR}/VERSION _version_contents)
+file (READ ${CMAKE_CURRENT_SOURCE_DIR}/src/VERSION _version_contents)
 string (REGEX REPLACE ".*#define[ \t]+CGNS_VERS_MAJOR[ \t]+([0-9]*).*$"
     "\\1" CGNS_VERS_MAJOR ${_version_contents})
 string (REGEX REPLACE ".*#define[ \t]+CGNS_VERS_MINOR[ \t]+([0-9]*).*$"
@@ -211,15 +211,13 @@ set (CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE ON)
 # Option to build Shared/Static libs, default is static
 #-----------------------------------------------------------------------------
 option (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
-#MSB
+
 set (LIB_TYPE STATIC)
 if (BUILD_SHARED_LIBS)
   set (LIB_TYPE SHARED)
-  add_definitions (-DH5HLR_DYNAMIC)
+  add_definitions (-DCGNS_DYNAMIC)
 endif (BUILD_SHARED_LIBS)
 set (CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-add_definitions (-DBIG_LONGS -DSWAP)
 
 #-----------------------------------------------------------------------------
 # Option to Build Static executables
@@ -269,7 +267,6 @@ if (MAKE_SYSTEM)
   set (CFG_INIT "")
 endif (MAKE_SYSTEM)
 
-
 #-----------------------------------------------------------------------------
 # Compiler specific flags : Shouldn't there be compiler tests for these
 #-----------------------------------------------------------------------------
@@ -298,6 +295,8 @@ ADD_CUSTOM_TARGET(uninstall
 if (CYGWIN)
   set(WIN32 "NO")
 endif (CYGWIN)
+
+set (CMAKE_MODULE_PATH ${CGNS_RESOURCES_DIR} ${CGNS_RESOURCES_EXT_DIR} ${CMAKE_MODULE_PATH})
 
 ##############
 # build mode #

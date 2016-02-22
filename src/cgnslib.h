@@ -35,13 +35,13 @@
 #ifndef CGNSLIB_H
 #define CGNSLIB_H
 
-#define CGNS_VERSION 3300
-#define CGNS_DOTVERS 3.30
 
 #define CGNS_COMPATVERSION 2540
 #define CGNS_COMPATDOTVERS 2.54
 
 #include "cgnstypes.h"
+#include "cgns_api.h"
+#include "VERSION"
 
 #if CG_BUILD_SCOPE
 # ifndef CGNS_SCOPE_ENUMS
@@ -53,6 +53,7 @@
 # endif
 #endif
 
+/*
 #ifndef CGNSDLL
 # ifdef _WIN32
 #  if defined(BUILD_DLL)
@@ -66,6 +67,7 @@
 #  define CGNSDLL
 # endif
 #endif
+*/
 
 #ifdef CGNS_SCOPE_ENUMS
 /* set scope prefix for values only */

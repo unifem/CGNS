@@ -25,7 +25,7 @@ fi
 #--------------------------------------------------------------------------
 
 AC_MSG_CHECKING([CGNS version])
-CGNSVERS=`grep CGNS_DOTVERS cgnslib.h | sed "s/#define *CGNS_DOTVERS *//"`
+CGNSVERS=`grep CGNS_DOTVERS VERSION | sed "s/#define *CGNS_DOTVERS *//"`
 AC_MSG_RESULT($CGNSVERS)
 
 CGNSDIR=`/bin/pwd`

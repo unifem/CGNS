@@ -2554,7 +2554,7 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking CGNS version" >&5
 $as_echo_n "checking CGNS version... " >&6; }
-CGNSVERS=`grep CGNS_DOTVERS cgnslib.h | sed "s/#define *CGNS_DOTVERS *//"`
+CGNSVERS=`grep CGNS_DOTVERS VERSION | sed "s/#define *CGNS_DOTVERS *//"`
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CGNSVERS" >&5
 $as_echo "$CGNSVERS" >&6; }
 
